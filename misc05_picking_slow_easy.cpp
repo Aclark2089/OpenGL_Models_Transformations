@@ -15,6 +15,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 using namespace glm;
+
 // Include AntTweakBar
 #include <AntTweakBar.h>
 
@@ -62,6 +63,7 @@ static void mouseCallback(GLFWwindow*, int, int, int);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
+char* wTitle = "R. Alex Clark (6416-3663)";
 
 glm::mat4 gProjectionMatrix;
 glm::mat4 gViewMatrix;
@@ -102,13 +104,13 @@ void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
-	bool res = loadOBJ(file, vertices, normals);
+	bool res = loadOBJ(file, vertices, uvs, normals);
 
 	std::vector<GLushort> indices;
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
 	std::vector<glm::vec3> indexed_normals;
-	indexVBO(vertices, normals, indices, indexed_vertices, indexed_normals);
+	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
 
 	const size_t vertCount = indexed_vertices.size();
 	const size_t idxCount = indices.size();
@@ -149,8 +151,7 @@ void createObjects(void)
 	createVAOs(CoordVerts, NULL, 0);
 	
 	//-- GRID --//
-	
-	// ATTN: create your grid vertices here!
+
 	
 	//-- .OBJs --//
 
@@ -272,7 +273,7 @@ int initWindow(void)
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(window_width, window_height, "Lastname,FirstName(ufid)", NULL, NULL);
+	window = glfwCreateWindow(window_width, window_height, wTitle, NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		glfwTerminate();
