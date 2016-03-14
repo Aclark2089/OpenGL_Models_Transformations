@@ -60,6 +60,7 @@ void renderScene(void);
 void cleanup(void);
 static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
+void setupGrid(void);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -133,6 +134,20 @@ void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &
 	IndexBufferSize[ObjectId] = sizeof(GLushort) * idxCount;
 }
 
+void setupGrid() {
+
+	glBegin(GL_LINES);
+	for (int i = 0; i <= 100; i += 10)
+	{
+		glVertex3f((float)i, 0.0f, 0.0f);
+		glVertex3f((float)i, 100.0f, 0.0f);
+		glVertex3f(0.0f, (float)i, 0.0f);
+		glVertex3f(100.0f, (float)i, 0.0f);
+	}
+	glEnd();
+
+}
+
 
 void createObjects(void)
 {
@@ -151,7 +166,7 @@ void createObjects(void)
 	createVAOs(CoordVerts, NULL, 0);
 	
 	//-- GRID --//
-
+	setupGrid();
 	
 	//-- .OBJs --//
 
