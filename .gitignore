@@ -1,0 +1,5 @@
+misc05_*
+!misc05_picking_slow_easy.cpp
+*.exe
+*.dds
+suzanne.obj
