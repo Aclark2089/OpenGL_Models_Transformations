@@ -60,7 +60,6 @@ void renderScene(void);
 void cleanup(void);
 static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
-void setupGrid(void);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -75,14 +74,14 @@ std::string gMessage;
 GLuint programID;
 GLuint pickingProgramID;
 
-const GLuint NumObjects = 1;	// ATTN: THIS NEEDS TO CHANGE AS YOU ADD NEW OBJECTS
-GLuint VertexArrayId[NumObjects] = { 0 };
-GLuint VertexBufferId[NumObjects] = { 0 };
-GLuint IndexBufferId[NumObjects] = { 0 };
+const GLuint NumObjects = 2;	// ATTN: THIS NEEDS TO CHANGE AS YOU ADD NEW OBJECTS
+GLuint VertexArrayId[NumObjects] = { 0, 1 };
+GLuint VertexBufferId[NumObjects] = { 0, 1 };
+GLuint IndexBufferId[NumObjects] = { 0, 1 };
 
-size_t NumIndices[NumObjects] = { 0 };
-size_t VertexBufferSize[NumObjects] = { 0 };
-size_t IndexBufferSize[NumObjects] = { 0 };
+size_t NumIndices[NumObjects] = { 0, 1 };
+size_t VertexBufferSize[NumObjects] = { 0, 1 };
+size_t IndexBufferSize[NumObjects] = { 0, 1 };
 
 GLuint MatrixID;
 GLuint ModelMatrixID;
@@ -134,21 +133,6 @@ void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &
 	IndexBufferSize[ObjectId] = sizeof(GLushort) * idxCount;
 }
 
-void setupGrid() {
-
-	glBegin(GL_LINES);
-	for (int i = 0; i <= 100; i += 10)
-	{
-		glVertex3f((float)i, 0.0f, 0.0f);
-		glVertex3f((float)i, 100.0f, 0.0f);
-		glVertex3f(0.0f, (float)i, 0.0f);
-		glVertex3f(100.0f, (float)i, 0.0f);
-	}
-	glEnd();
-
-}
-
-
 void createObjects(void)
 {
 	//-- COORDINATE AXES --//
@@ -166,7 +150,24 @@ void createObjects(void)
 	createVAOs(CoordVerts, NULL, 0);
 	
 	//-- GRID --//
-	setupGrid();
+	Vertex GridVerticies[44];
+	for (int i = 0, j = -5.0; i < 44; i += 2, (j >= 5.0) ? j = -5.0 : j++) {
+
+		// Draw the lines parallel to the Z axis
+		if (i < 22) {
+			GridVerticies[i] = { { j, 0.0, -5.0, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
+			GridVerticies[i+1] = { { j, 0.0, 5.0, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
+		}
+		// Draw the lines parallel to the X axis
+		else {
+			GridVerticies[i] = { { -5.0, 0.0, j, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
+			GridVerticies[i + 1] = { { 5.0, 0.0, j, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
+		}
+	}
+
+	// Implement GridVerticies
+	VertexBufferSize[1] = sizeof(GridVerticies);
+	createVAOs(GridVerticies, NULL, 1);
 	
 	//-- .OBJs --//
 
@@ -200,6 +201,10 @@ void renderScene(void)
 		
 		glBindVertexArray(VertexArrayId[0]);	// draw CoordAxes
 		glDrawArrays(GL_LINES, 0, 6);
+
+		glBindVertexArray(VertexArrayId[1]);
+		glDrawArrays(GL_LINES, 0, 44);
+		
 			
 		glBindVertexArray(0);
 
