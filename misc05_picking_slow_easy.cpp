@@ -163,6 +163,7 @@ void createObjects(void)
 			GridVerticies[i] = { { -5.0, 0.0, j, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
 			GridVerticies[i + 1] = { { 5.0, 0.0, j, 1.0 }, { 1.0, 1.0, 1.0, 1.0 }, { 0.0, 0.0, 1.0 } };
 		}
+
 	}
 
 	// Implement GridVerticies
