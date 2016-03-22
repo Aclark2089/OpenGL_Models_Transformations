@@ -105,13 +105,13 @@ void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> uvs;
 	std::vector<glm::vec3> normals;
-	bool res = loadOBJ(file, vertices, uvs, normals);
+	bool res = loadOBJ(file, vertices, normals);
 
 	std::vector<GLushort> indices;
 	std::vector<glm::vec3> indexed_vertices;
 	std::vector<glm::vec2> indexed_uvs;
 	std::vector<glm::vec3> indexed_normals;
-	indexVBO(vertices, uvs, normals, indices, indexed_vertices, indexed_uvs, indexed_normals);
+	indexVBO(vertices, normals, indices, indexed_vertices, indexed_normals);
 
 	const size_t vertCount = indexed_vertices.size();
 	const size_t idxCount = indices.size();
