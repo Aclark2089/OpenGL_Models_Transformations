@@ -60,6 +60,7 @@ void renderScene(void);
 void cleanup(void);
 static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
+glm::vec3 setLookat(void);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -97,6 +98,10 @@ GLint gZ = 0.0;
 // animation control
 bool animation = false;
 GLfloat phi = 0.0;
+
+// Camera Variables
+bool isCameraSelected = false; // Flag for enabling camera movement
+float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
 
 void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &out_Indices, int ObjectId)
 {
@@ -184,6 +189,8 @@ void renderScene(void)
 {
 	//ATTN: DRAW YOUR SCENE HERE. MODIFY/ADAPT WHERE NECESSARY!
 
+	// Update camera view based on arrow key movement
+	gViewMatrix = glm::lookAt(setLookat(), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.2f, 0.0f);
@@ -199,10 +206,11 @@ void renderScene(void)
 		glUniformMatrix4fv(ProjMatrixID, 1, GL_FALSE, &gProjectionMatrix[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
 
-		
-		glBindVertexArray(VertexArrayId[0]);	// draw CoordAxes
+		// Draw XYZ coordinates axes
+		glBindVertexArray(VertexArrayId[0]);
 		glDrawArrays(GL_LINES, 0, 6);
 
+		// Draw grid along the XZ plane using setup GridVerticies
 		glBindVertexArray(VertexArrayId[1]);
 		glDrawArrays(GL_LINES, 0, 44);
 		
@@ -424,21 +432,40 @@ void cleanup(void)
 	glfwTerminate();
 }
 
+
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// ATTN: MODIFY AS APPROPRIATE
 	if (action == GLFW_PRESS) {
 		switch (key)
 		{
-		case GLFW_KEY_A:
+		case GLFW_KEY_C:
+			isCameraSelected = !isCameraSelected;
+			printf("Camera is %s", isCameraSelected ? "selected\n" : "not selected\n");
 			break;
-		case GLFW_KEY_D:
+		case GLFW_KEY_LEFT:
+			printf("Left arrow key pressed\n");
+			if (isCameraSelected) {
+				thetaX += 0.5;
+			}
 			break;
-		case GLFW_KEY_W:
+		case GLFW_KEY_RIGHT:
+			printf("Right arrow key pressed\n");
+			if (isCameraSelected) {
+				thetaX -= 0.5;
+			}
 			break;
-		case GLFW_KEY_S:
+		case GLFW_KEY_UP:
+			printf("Up arrow key pressed\n");
+			if (isCameraSelected) {
+				thetaY += 0.5;
+			}
 			break;
-		case GLFW_KEY_SPACE:
+		case GLFW_KEY_DOWN:
+			printf("Down arrow key pressed\n");
+			if (isCameraSelected) {
+				thetaY -= 0.5;
+			}
 			break;
 		default:
 			break;
@@ -452,6 +479,35 @@ static void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 		pickObject();
 	}
 }
+
+glm::vec3 setLookat() {
+
+	// Rotation matrix about the X axis, left and right
+	glm::mat4 RotationZ = { 
+							{ 1.0, 0.0, 0.0, 0.0 },
+							{ 0.0, cos(thetaY), -sin(thetaY), 0.0 },
+							{ 0.0, sin(thetaY), cos(thetaY), 0.0 },
+							{ 0.0, 0.0, 0.0, 1.0 }
+						  };
+
+	// Rotation matrix about the Y axis, up and down
+	glm::mat4 RotationX = {
+							{ cos(thetaX), 0.0, sin(thetaX), 0.0 },
+							{ 0.0, 1.0, 0.0, 0.0 },
+							{ -sin(thetaX), 0.0, cos(thetaX), 0.0 },
+							{ 0.0, 0.0, 0.0, 1.0 }
+						};
+
+	// vec multiplied by result of the rotation matricies gives us our vector of rotation
+	glm::vec4 vec = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glm::vec4 rotation = RotationX * RotationZ * vec;
+
+	// Set output vector as scaled rotation calculation vector
+	glm::vec3 output = { 10 * rotation[0], 10 * rotation[1], 10 * rotation[2] };
+
+	return output;
+}
+
 
 int main(void)
 {
