@@ -75,14 +75,14 @@ std::string gMessage;
 GLuint programID;
 GLuint pickingProgramID;
 
-const GLuint NumObjects = 2;	// ATTN: THIS NEEDS TO CHANGE AS YOU ADD NEW OBJECTS
-GLuint VertexArrayId[NumObjects] = { 0, 1 };
-GLuint VertexBufferId[NumObjects] = { 0, 1 };
-GLuint IndexBufferId[NumObjects] = { 0, 1 };
+const GLuint NumObjects = 9;	// ATTN: THIS NEEDS TO CHANGE AS YOU ADD NEW OBJECTS
+GLuint VertexArrayId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+GLuint VertexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+GLuint IndexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
-size_t NumIndices[NumObjects] = { 0, 1 };
-size_t VertexBufferSize[NumObjects] = { 0, 1 };
-size_t IndexBufferSize[NumObjects] = { 0, 1 };
+size_t NumIndices[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+size_t VertexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+size_t IndexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 
 GLuint MatrixID;
 GLuint ModelMatrixID;
@@ -178,25 +178,38 @@ void createObjects(void)
 	//-- .OBJs --//
 
 	// ATTN: load your models here
-	//Vertex* Verts;
-	//GLushort* Idcs;
+	Vertex* Verts;
+	GLushort* Idcs;
 
 	// Load model pieces into space
-	//loadObject("models/base.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 2);
-	//loadObject("models/arm2.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 3);
-	//loadObject("models/button.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 4);
-	//loadObject("models/joint.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 5);
-	//loadObject("models/pen.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 6);
-	//loadObject("models/top.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 7);
 
+	// Base
+	loadObject("models/base.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 2);
+	createVAOs(Verts, Idcs, 2);
+	
+	// Arm 1
+	loadObject("models/arm1.obj", glm::vec4(0.0, 0.0, 1.0, 1.0), Verts, Idcs, 3);
+	createVAOs(Verts, Idcs, 3);
 
-	// Create model VAOs
-	//createVAOs(Verts, Idcs, 2);
-	//createVAOs(Verts, Idcs, 3);
-	//createVAOs(Verts, Idcs, 4);
-	//createVAOs(Verts, Idcs, 5);
-	//createVAOs(Verts, Idcs, 6);
-	//createVAOs(Verts, Idcs, 7);
+	// Arm 2
+	loadObject("models/arm2.obj", glm::vec4(0.0, 1.0, 1.0, 1.0), Verts, Idcs, 4);
+	createVAOs(Verts, Idcs, 4);
+
+	// Button
+	loadObject("models/button.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 5);
+	createVAOs(Verts, Idcs, 5);
+
+	// Joint
+	loadObject("models/joint.obj", glm::vec4(1.0, 0.0, 1.0, 1.0), Verts, Idcs, 6);
+	createVAOs(Verts, Idcs, 6);
+
+	// Pen
+	loadObject("models/pen.obj", glm::vec4(1.0, 1.0, 0.0, 1.0), Verts, Idcs, 7);
+	createVAOs(Verts, Idcs, 7);
+
+	// Top
+	loadObject("models/top.obj", glm::vec4(0.0, 1.0, 0.0, 1.0), Verts, Idcs, 8);
+	createVAOs(Verts, Idcs, 8);
 
 }
 
@@ -226,10 +239,39 @@ void renderScene(void)
 		glDrawArrays(GL_LINES, 0, 6);
 
 		// Draw grid along the XZ plane using setup GridVerticies
+
+		// Draw Grid
 		glBindVertexArray(VertexArrayId[1]);
 		glDrawArrays(GL_LINES, 0, 44);
+
+		// Draw Base
+		glBindVertexArray(VertexArrayId[2]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[2], GL_UNSIGNED_SHORT, 0);
+
+		// Draw Arm 1
+		glBindVertexArray(VertexArrayId[3]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[3], GL_UNSIGNED_SHORT, 0);
+
+		// Draw Arm 2
+		glBindVertexArray(VertexArrayId[4]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[4], GL_UNSIGNED_SHORT, 0);
+
+		// Draw Button
+		glBindVertexArray(VertexArrayId[5]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[5], GL_UNSIGNED_SHORT, 0);
+
+		//Draw Joint
+		glBindVertexArray(VertexArrayId[6]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[6], GL_UNSIGNED_SHORT, 0);
+
+		// Draw Pen
+		glBindVertexArray(VertexArrayId[7]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[7], GL_UNSIGNED_SHORT, 0);
+
+		// Draw Top
+		glBindVertexArray(VertexArrayId[8]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[8], GL_UNSIGNED_SHORT, 0);
 		
-			
 		glBindVertexArray(0);
 
 	}
