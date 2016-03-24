@@ -180,8 +180,23 @@ void createObjects(void)
 	// ATTN: load your models here
 	//Vertex* Verts;
 	//GLushort* Idcs;
-	//loadObject("models/base.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, ObjectID);
-	//createVAOs(Verts, Idcs, ObjectID);
+
+	// Load model pieces into space
+	//loadObject("models/base.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 2);
+	//loadObject("models/arm2.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 3);
+	//loadObject("models/button.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 4);
+	//loadObject("models/joint.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 5);
+	//loadObject("models/pen.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 6);
+	//loadObject("models/top.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 7);
+
+
+	// Create model VAOs
+	//createVAOs(Verts, Idcs, 2);
+	//createVAOs(Verts, Idcs, 3);
+	//createVAOs(Verts, Idcs, 4);
+	//createVAOs(Verts, Idcs, 5);
+	//createVAOs(Verts, Idcs, 6);
+	//createVAOs(Verts, Idcs, 7);
 
 }
 
