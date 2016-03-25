@@ -61,6 +61,7 @@ void cleanup(void);
 static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
 glm::vec3 setLookat(void);
+void rotateCamera(void);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -101,7 +102,9 @@ GLfloat phi = 0.0;
 
 // Camera Variables
 bool isCameraSelected = false; // Flag for enabling camera movement
+int cameraDirection; // Direction of rotation for camera (L/R, U/D)
 float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
+
 
 void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &out_Indices, int ObjectId)
 {
@@ -492,7 +495,7 @@ void cleanup(void)
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	// ATTN: MODIFY AS APPROPRIATE
+	// Keypress Actions
 	if (action == GLFW_PRESS) {
 		switch (key)
 		{
@@ -502,31 +505,31 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 			break;
 		case GLFW_KEY_LEFT:
 			printf("Left arrow key pressed\n");
-			if (isCameraSelected) {
-				thetaX += 0.5;
-			}
+			cameraDirection = 1;
 			break;
 		case GLFW_KEY_RIGHT:
 			printf("Right arrow key pressed\n");
-			if (isCameraSelected) {
-				thetaX -= 0.5;
-			}
+			cameraDirection = 2;
 			break;
 		case GLFW_KEY_UP:
 			printf("Up arrow key pressed\n");
-			if (isCameraSelected) {
-				thetaY += 0.5;
-			}
+			cameraDirection = 3;
 			break;
 		case GLFW_KEY_DOWN:
 			printf("Down arrow key pressed\n");
-			if (isCameraSelected) {
-				thetaY -= 0.5;
-			}
+			cameraDirection = 4;
 			break;
 		default:
 			break;
 		}
+	}
+
+	// Release Actions
+	if (action == GLFW_RELEASE) {
+
+		// Turn off camera rotation
+		cameraDirection = 0;
+
 	}
 }
 
@@ -539,16 +542,16 @@ static void mouseCallback(GLFWwindow* window, int button, int action, int mods)
 
 glm::vec3 setLookat() {
 
-	// Rotation matrix about the X axis, left and right
-	glm::mat4 RotationZ = { 
+	// Rotation matrix about the X axis, up and down
+	glm::mat4 RotationX = { 
 							{ 1.0, 0.0, 0.0, 0.0 },
 							{ 0.0, cos(thetaY), -sin(thetaY), 0.0 },
 							{ 0.0, sin(thetaY), cos(thetaY), 0.0 },
 							{ 0.0, 0.0, 0.0, 1.0 }
 						  };
 
-	// Rotation matrix about the Y axis, up and down
-	glm::mat4 RotationX = {
+	// Rotation matrix about the Y axis, left and right
+	glm::mat4 RotationY = {
 							{ cos(thetaX), 0.0, sin(thetaX), 0.0 },
 							{ 0.0, 1.0, 0.0, 0.0 },
 							{ -sin(thetaX), 0.0, cos(thetaX), 0.0 },
@@ -557,12 +560,33 @@ glm::vec3 setLookat() {
 
 	// vec multiplied by result of the rotation matricies gives us our vector of rotation
 	glm::vec4 vec = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glm::vec4 rotation = RotationX * RotationZ * vec;
+	glm::vec4 rotation = RotationY * RotationX * vec;
 
 	// Set output vector as scaled rotation calculation vector
 	glm::vec3 output = { 10 * rotation[0], 10 * rotation[1], 10 * rotation[2] };
 
 	return output;
+}
+
+void rotateCamera() {
+
+	switch (cameraDirection) {
+	case 1:				// Left
+		thetaX += 0.05;
+		break;
+	case 2:				// Right
+		thetaX -= 0.05;
+		break;
+	case 3:				// Up
+		thetaY += 0.05;
+		break;
+	case 4:				// Down
+		thetaY -= 0.05;
+		break;
+	default:			// Not started
+		break;
+	}
+
 }
 
 
@@ -594,6 +618,10 @@ int main(void)
 			phi += 0.01;
 			if (phi > 360)
 				phi -= 360;
+		}
+
+		if (isCameraSelected) {
+			rotateCamera();
 		}
 
 		// DRAWING POINTS
