@@ -71,7 +71,6 @@ void rotateObjectMatrix(glm::mat4x4*, glm::mat4x4, float, glm::vec3);
 void scaleObjectMatrix(glm::mat4x4*, glm::mat4x4, glm::vec3);
 
 // Object Setup
-void setObjectBasisPositions(glm::mat4x4);
 void translateBasePosition(void);
 void rotateTopPosition(void);
 void rotateArm1Position(void);
@@ -300,71 +299,6 @@ void createObjects(void)
 
 }
 
-// Setup initial positions of the haptic device
-void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
-
-	// Base
-	glBindVertexArray(VertexArrayId[BaseIndex]);
-	translateObjectMatrix(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	translateObjectMatrix(&BaseModelMatrix, BaseModelMatrix, glm::vec3(0.0f + BaseXPosition, 0.5f, 0.0f + BaseZPosition));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
-
-	// Top
-	glBindVertexArray(VertexArrayId[TopIndex]);
-	translateObjectMatrix(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	rotateObjectMatrix(&TopModelMatrix, TopModelMatrix, TopYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-	translateObjectMatrix(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
-	
-	// Arm1
-	glBindVertexArray(VertexArrayId[Arm1Index]);
-	translateObjectMatrix(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	rotateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4) + Arm1ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
-
-	// Joint
-	glBindVertexArray(VertexArrayId[JointIndex]);
-	translateObjectMatrix(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	scaleObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
-	translateObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
-	
-	// Arm2
-	glBindVertexArray(VertexArrayId[Arm2Index]);
-	translateObjectMatrix(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	scaleObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
-	rotateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5) + Arm2ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
-
-	// Pen
-	glBindVertexArray(VertexArrayId[PenIndex]);
-	translateObjectMatrix(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, float(2 * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.6f, 0.0f, 0.0f));
-	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenXRotation, glm::vec3(1.0f, 0.0f, 0.0f));
-	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.2f, 0.0f));
-	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
-	
-
-	// Button
-	glBindVertexArray(VertexArrayId[ButtonIndex]);
-	translateObjectMatrix(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	translateObjectMatrix(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
-	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
-	glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
-
-}
-
 void deselectObjectIndicies() {
 	BaseIndex = 2;
 	Arm1Index = 3;
@@ -405,7 +339,65 @@ void renderScene(void)
 		glDrawArrays(GL_LINES, 0, 44);
 
 		// Translate Objects to Correct Positions
-		setObjectBasisPositions(ModelMatrix);
+		// Base
+		glBindVertexArray(VertexArrayId[BaseIndex]);
+		translateObjectMatrix(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		translateObjectMatrix(&BaseModelMatrix, BaseModelMatrix, glm::vec3(0.0f + BaseXPosition, 0.5f, 0.0f + BaseZPosition));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Top
+		glBindVertexArray(VertexArrayId[TopIndex]);
+		translateObjectMatrix(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&TopModelMatrix, TopModelMatrix, TopYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		translateObjectMatrix(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Arm1
+		glBindVertexArray(VertexArrayId[Arm1Index]);
+		translateObjectMatrix(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4) + Arm1ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
+
+		// Joint
+		glBindVertexArray(VertexArrayId[JointIndex]);
+		translateObjectMatrix(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		scaleObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
+		translateObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Arm2
+		glBindVertexArray(VertexArrayId[Arm2Index]);
+		translateObjectMatrix(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		scaleObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
+		rotateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5) + Arm2ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
+
+		// Pen
+		glBindVertexArray(VertexArrayId[PenIndex]);
+		translateObjectMatrix(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, float(2 * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.6f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenXRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.2f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
+
+
+		// Button
+		glBindVertexArray(VertexArrayId[ButtonIndex]);
+		translateObjectMatrix(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		translateObjectMatrix(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
 
 		glBindVertexArray(0);
 
@@ -539,24 +531,43 @@ void pickObject(void)
 		switch (gPickedIndex) {
 			case 2:
 				oss << "Base";
+				deselectObjectIndicies();
+				keyMode = 5;
+				BaseIndex = 9;
 				break;
 			case 3:
 				oss << "Arm1";
+				deselectObjectIndicies();
+				keyMode = 1;
+				Arm1Index = 10;
 				break;
 			case 4:
 				oss << "Arm2";
+				deselectObjectIndicies();
+				keyMode = 2;
+				Arm2Index = 11;
 				break;
 			case 5:
 				oss << "Button";
+				deselectObjectIndicies();
+				ButtonIndex = 12;
 				break;
 			case 6:
 				oss << "Joint";
+				deselectObjectIndicies();
+				JointIndex = 13;
 				break;
 			case 7:
 				oss << "Pen";
+				deselectObjectIndicies();
+				keyMode = 4;
+				PenIndex = 14;
 				break;
 			case 8:
 				oss << "Top";
+				deselectObjectIndicies();
+				keyMode = 6;
+				TopIndex = 15;
 				break;
 			case 9:
 				oss << "Base";
@@ -586,7 +597,7 @@ void pickObject(void)
 	}
 
 	// Uncomment these lines to see the picking shader in effect
-	glfwSwapBuffers(window);
+	//glfwSwapBuffers(window);
 	//continue; // skips the normal rendering
 }
 
