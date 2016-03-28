@@ -404,15 +404,12 @@ void renderScene(void)
 		glBindVertexArray(VertexArrayId[0]);
 		glDrawArrays(GL_LINES, 0, 6);
 
-		// Draw grid along the XZ plane using setup GridVerticies
-
 		// Draw Grid
 		glBindVertexArray(VertexArrayId[1]);
 		glDrawArrays(GL_LINES, 0, 44);
 
 		// Translate Objects to Correct Positions
 		setObjectBasisPositions(ModelMatrix);
-
 
 		glBindVertexArray(0);
 
