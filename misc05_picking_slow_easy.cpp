@@ -558,6 +558,27 @@ void pickObject(void)
 			case 8:
 				oss << "Top";
 				break;
+			case 9:
+				oss << "Base";
+				break;
+			case 10:
+				oss << "Arm1";
+				break;
+			case 11:
+				oss << "Arm2";
+				break;
+			case 12:
+				oss << "Button";
+				break;
+			case 13:
+				oss << "Joint";
+				break;
+			case 14:
+				oss << "Pen";
+				break;
+			case 15:
+				oss << "Top";
+				break;
 			default:
 				oss << "point " << gPickedIndex;
 		}
