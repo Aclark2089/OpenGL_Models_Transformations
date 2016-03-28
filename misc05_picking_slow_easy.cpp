@@ -23,6 +23,7 @@ using namespace glm;
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
 #include <common/vboindexer.hpp>
+#define PI 3.1415926535897
 
 const int window_width = 1024, window_height = 768;
 
@@ -49,6 +50,57 @@ typedef struct Vertex {
 	}
 };
 
+
+//class GObject {
+//
+//	glm::mat4x4 ModelMatrix;
+//	int objIndex;
+//
+//public:
+//	GObject() {};
+//	~GObject();
+//
+//	void initObject(int oi) {
+//		objIndex = oi;
+//		ModelMatrix = glm::mat4(1.0);
+//	}
+//
+//	glm::mat4x4& getModelMatrix() {
+//		return ModelMatrix;
+//	}
+//
+//	void translateObject(glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
+//
+//		// Translate Object Model Matrix by TranslationDirection from Basis ModelMatrixToTranslateOff
+//		ModelMatrix = glm::translate(
+//			ModelMatrixToTranslateOff,
+//			TranslationDirection
+//			);
+//	}
+//
+//	void rotateObject(glm::mat4x4 ModelMatrixToRotateOff, float rotation, glm::vec3 RotationDirection) {
+//
+//		// Rotate Object Model Matrix by rotation in RotationDirection from Basis ModelMatrixToRotateOff
+//		ModelMatrix = glm::rotate(
+//			ModelMatrixToRotateOff,
+//			rotation,
+//			RotationDirection
+//			);
+//	
+//	}
+//
+//	void scaleObject(glm::mat4x4 ModelMatrixToScaleOff, glm::vec3 ScaleAmount) {
+//		
+//		// Scale Object Model Matrix by ScaleAmount from Basis ModelMatrixToScaleOff
+//		ModelMatrix = glm::scale(
+//			ModelMatrixToScaleOff,
+//			ScaleAmount
+//			);
+//
+//	}
+//
+//};
+
 // function prototypes
 int initWindow(void);
 void initOpenGL(void);
@@ -62,6 +114,14 @@ static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
 glm::vec3 setLookat(void);
 void rotateCamera(void);
+
+// SRT Functions
+void translateObject(glm::mat4x4*, glm::mat4x4, glm::vec3);
+void rotateObject(glm::mat4x4*, glm::mat4x4, float, glm::vec3);
+void scaleObject(glm::mat4x4*, glm::mat4x4, glm::vec3);
+
+// Object Setup
+void setObjectBasisPositions(glm::mat4x4);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -104,6 +164,45 @@ GLfloat phi = 0.0;
 bool isCameraSelected = false; // Flag for enabling camera movement
 int cameraDirection; // Direction of rotation for camera (L/R, U/D)
 float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
+								 
+// Object Matricies
+glm::mat4x4 BaseModelMatrix = glm::mat4(1.0);
+glm::mat4x4 Arm1ModelMatrix = glm::mat4(1.0);
+glm::mat4x4 Arm2ModelMatrix = glm::mat4(1.0);
+glm::mat4x4 TopModelMatrix = glm::mat4(1.0);
+glm::mat4x4 ButtonModelMatrix = glm::mat4(1.0);
+glm::mat4x4 JointModelMatrix = glm::mat4(1.0);
+glm::mat4x4 PenModelMatrix = glm::mat4(1.0);
+
+void translateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
+
+	// Translate ModelMatrixToSet  by TranslationDirection from Basis ModelMatrixToTranslateOff
+	*ModelMatrixToSet = glm::translate(
+		ModelMatrixToTranslateOff,
+		TranslationDirection
+		);
+}
+
+void rotateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToRotateOff, float rotation, glm::vec3 RotationDirection) {
+
+	// Rotate Object Model Matrix by rotation in RotationDirection from Basis ModelMatrixToRotateOff
+	*ModelMatrixToSet = glm::rotate(
+		ModelMatrixToRotateOff,
+		rotation,
+		RotationDirection
+		);
+	
+}
+
+void scaleObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToScaleOff, glm::vec3 ScaleAmount) {
+		
+	// Scale Object Model Matrix by ScaleAmount from Basis ModelMatrixToScaleOff
+	*ModelMatrixToSet = glm::scale(
+		ModelMatrixToScaleOff,
+		ScaleAmount
+		);
+
+}
 
 
 void loadObject(char* file, glm::vec4 color, Vertex * &out_Vertices, GLushort* &out_Indices, int ObjectId)
@@ -216,6 +315,43 @@ void createObjects(void)
 
 }
 
+void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
+
+	// Base
+	translateObject(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+
+	// Top
+	translateObject(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	translateObject(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+	
+	// Arm1
+	translateObject(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	rotateObject(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObject(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+
+	// Joint
+	translateObject(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	scaleObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
+	translateObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
+	
+	// Arm2
+	translateObject(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	scaleObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
+	rotateObject(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5), glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+
+	// Pen
+	translateObject(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	rotateObject(&PenModelMatrix, PenModelMatrix, float( 2 * PI / 3), glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObject(&PenModelMatrix, PenModelMatrix, glm::vec3(0.55f, -0.1f, 0.0f));
+	
+
+	// Button
+	translateObject(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	translateObject(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
+
+}
+
 void renderScene(void)
 {
 	//ATTN: DRAW YOUR SCENE HERE. MODIFY/ADAPT WHERE NECESSARY!
@@ -232,7 +368,9 @@ void renderScene(void)
 	{
 		glm::vec3 lightPos = glm::vec3(4, 4, 4);
 		glm::mat4x4 ModelMatrix = glm::mat4(1.0);
+
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &gViewMatrix[0][0]);
 		glUniformMatrix4fv(ProjMatrixID, 1, GL_FALSE, &gProjectionMatrix[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);
@@ -247,34 +385,44 @@ void renderScene(void)
 		glBindVertexArray(VertexArrayId[1]);
 		glDrawArrays(GL_LINES, 0, 44);
 
+		// Translate Objects to Correct Positions
+		setObjectBasisPositions(ModelMatrix);
+		
 		// Draw Base
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
 		glBindVertexArray(VertexArrayId[2]);
 		glDrawElements(GL_TRIANGLES, VertexBufferSize[2], GL_UNSIGNED_SHORT, 0);
 
+		// Draw Top
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
+		glBindVertexArray(VertexArrayId[8]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[8], GL_UNSIGNED_SHORT, 0);
+
 		// Draw Arm 1
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
 		glBindVertexArray(VertexArrayId[3]);
 		glDrawElements(GL_TRIANGLES, VertexBufferSize[3], GL_UNSIGNED_SHORT, 0);
 
-		// Draw Arm 2
-		glBindVertexArray(VertexArrayId[4]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[4], GL_UNSIGNED_SHORT, 0);
-
-		// Draw Button
-		glBindVertexArray(VertexArrayId[5]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[5], GL_UNSIGNED_SHORT, 0);
-
 		//Draw Joint
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
 		glBindVertexArray(VertexArrayId[6]);
 		glDrawElements(GL_TRIANGLES, VertexBufferSize[6], GL_UNSIGNED_SHORT, 0);
 
+		// Draw Arm 2
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
+		glBindVertexArray(VertexArrayId[4]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[4], GL_UNSIGNED_SHORT, 0);
+
 		// Draw Pen
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
 		glBindVertexArray(VertexArrayId[7]);
 		glDrawElements(GL_TRIANGLES, VertexBufferSize[7], GL_UNSIGNED_SHORT, 0);
 
-		// Draw Top
-		glBindVertexArray(VertexArrayId[8]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[8], GL_UNSIGNED_SHORT, 0);
-		
+		// Draw Button
+		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
+		glBindVertexArray(VertexArrayId[5]);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[5], GL_UNSIGNED_SHORT, 0);
+
 		glBindVertexArray(0);
 
 	}
