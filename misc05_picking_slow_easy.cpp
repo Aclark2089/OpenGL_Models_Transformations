@@ -322,8 +322,8 @@ void renderScene(void)
 
 	glUseProgram(programID);
 	{
-		glm::vec3 lightPos = glm::vec3(5, 5, 5);
-		glm::vec3 lightPos2 = glm::vec3(-5, 5, -5);
+		glm::vec3 lightPos = glm::vec3(2, 1, 2);
+		glm::vec3 lightPos2 = glm::vec3(2, 1, -2);
 		glm::mat4x4 ModelMatrix = glm::mat4(1.0);
 
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
