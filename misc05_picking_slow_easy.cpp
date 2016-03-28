@@ -66,12 +66,17 @@ void rotateCamera(void);
 void deselectObjectIndicies(void);
 
 // SRT Functions
-void translateObject(glm::mat4x4*, glm::mat4x4, glm::vec3);
-void rotateObject(glm::mat4x4*, glm::mat4x4, float, glm::vec3);
-void scaleObject(glm::mat4x4*, glm::mat4x4, glm::vec3);
+void translateObjectMatrix(glm::mat4x4*, glm::mat4x4, glm::vec3);
+void rotateObjectMatrix(glm::mat4x4*, glm::mat4x4, float, glm::vec3);
+void scaleObjectMatrix(glm::mat4x4*, glm::mat4x4, glm::vec3);
 
 // Object Setup
 void setObjectBasisPositions(glm::mat4x4);
+void translateBasePosition(void);
+void rotateTopPosition(void);
+void rotateArm1Position(void);
+void rotateArm2Position(void);
+void rotatePenPosition(void);
 
 // GLOBAL VARIABLES
 GLFWwindow* window;
@@ -114,15 +119,22 @@ bool animation = false;
 GLfloat phi = 0.0;
 
 // Key Action Identifier To Catch Keypresses 
-int keyMode;
+int keyMode = 0;
+int shiftPressed = 0;
 
 // Camera Variables
 int rotationDirection; // Direction of rotation (L/R, U/D)
-float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
+float thetaX, thetaY = 1.0; // Rotation positions for left/right & up/down movement of camera
 
 // Object Variables
-
-
+float BaseXPosition = 0.0;
+float BaseZPosition = 0.0;
+float TopYRotation = 0.0;
+float Arm1ZRotation = 0.0;
+float Arm2ZRotation = 0.0;
+float PenXRotation = 0.0;
+float PenZRotation = 0.0;
+float PenYRotation = 0.0;
 								 
 // Object Matricies
 glm::mat4x4 BaseModelMatrix = glm::mat4(1.0);
@@ -143,7 +155,7 @@ unsigned int PenIndex = 7;
 unsigned int TopIndex = 8;
 
 
-void translateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
+void translateObjectMatrix(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
 
 	// Translate ModelMatrixToSet  by TranslationDirection from Basis ModelMatrixToTranslateOff
 	*ModelMatrixToSet = glm::translate(
@@ -152,7 +164,7 @@ void translateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToTra
 		);
 }
 
-void rotateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToRotateOff, float rotation, glm::vec3 RotationDirection) {
+void rotateObjectMatrix(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToRotateOff, float rotation, glm::vec3 RotationDirection) {
 
 	// Rotate Object Model Matrix by rotation in RotationDirection from Basis ModelMatrixToRotateOff
 	*ModelMatrixToSet = glm::rotate(
@@ -163,7 +175,7 @@ void rotateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToRotate
 	
 }
 
-void scaleObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToScaleOff, glm::vec3 ScaleAmount) {
+void scaleObjectMatrix(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToScaleOff, glm::vec3 ScaleAmount) {
 		
 	// Scale Object Model Matrix by ScaleAmount from Basis ModelMatrixToScaleOff
 	*ModelMatrixToSet = glm::scale(
@@ -292,55 +304,63 @@ void createObjects(void)
 void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
 
 	// Base
-	translateObject(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+	translateObjectMatrix(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	translateObjectMatrix(&BaseModelMatrix, BaseModelMatrix, glm::vec3(0.0f + BaseXPosition, 0.5f, 0.0f + BaseZPosition));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[BaseIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
 
 	// Top
-	translateObject(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	translateObject(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+	translateObjectMatrix(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	rotateObjectMatrix(&TopModelMatrix, TopModelMatrix, TopYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+	translateObjectMatrix(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[TopIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm1
-	translateObject(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	rotateObject(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObject(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+	translateObjectMatrix(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	rotateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4) + Arm1ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[Arm1Index]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
 
 	// Joint
-	translateObject(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	scaleObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
-	translateObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
+	translateObjectMatrix(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	scaleObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
+	translateObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[JointIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm2
-	translateObject(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	scaleObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
-	rotateObject(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5), glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+	translateObjectMatrix(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	scaleObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
+	rotateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5) + Arm2ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[Arm2Index]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
 
 	// Pen
-	translateObject(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	rotateObject(&PenModelMatrix, PenModelMatrix, float( 2 * PI / 3), glm::vec3(0.0f, 0.0f, 1.0f));
-	translateObject(&PenModelMatrix, PenModelMatrix, glm::vec3(0.55f, -0.1f, 0.0f));
+	translateObjectMatrix(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, float(2 * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.6f, 0.0f, 0.0f));
+	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenXRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.2f, 0.0f));
+	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+	
+	
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[PenIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
 	
 
 	// Button
-	translateObject(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
-	translateObject(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
+	translateObjectMatrix(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+	translateObjectMatrix(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
 	glBindVertexArray(VertexArrayId[ButtonIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
@@ -706,9 +726,11 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 			rotationDirection = 4;
 			break;
 		case GLFW_KEY_LEFT_SHIFT:
+			shiftPressed = 1;
 			printf("Left shift key pressed\n");
 			break;
 		case GLFW_KEY_RIGHT_SHIFT:
+			shiftPressed = 1;
 			printf("Right shift key pressed\n");
 			break;
 		default:
@@ -719,8 +741,16 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 	// Release Actions
 	if (action == GLFW_RELEASE) {
 
-		// Turn off rotation
-		rotationDirection = 0;
+		switch (key) {
+			case GLFW_KEY_LEFT_SHIFT:
+			case GLFW_KEY_RIGHT_SHIFT:
+				shiftPressed = 0;
+				break;
+			default:
+				rotationDirection = 0;
+				break;
+		}
+		
 
 	}
 }
@@ -781,6 +811,99 @@ void rotateCamera() {
 
 }
 
+void rotateArm1Position() {
+
+	switch (rotationDirection) {
+	case 3:				// Up
+		Arm1ZRotation += 0.05;
+		break;
+	case 4:				// Down
+		Arm1ZRotation -= 0.05;
+		break;
+	default:			// Not started
+		break;
+	}
+}
+
+void rotateArm2Position() {
+
+	switch (rotationDirection) {
+	case 3:				// Up
+		Arm2ZRotation += 0.05;
+		break;
+	case 4:				// Down
+		Arm2ZRotation -= 0.05;
+		break;
+	default:			// Not started
+		break;
+	}
+}
+
+void rotateTopPosition() {
+
+	switch (rotationDirection) {
+	case 1:				// Left
+		TopYRotation += 0.05;
+		break;
+	case 2:				// Right
+		TopYRotation -= 0.05;
+		break;
+	default:			// Not started
+		break;
+	}
+}
+
+void translateBasePosition() {
+
+	switch (rotationDirection) {
+	case 1:				// Left
+		BaseZPosition += 0.1;
+		break;
+	case 2:				// Right
+		BaseZPosition -= 0.1;
+		break;
+	case 3:				// Up
+		BaseXPosition -= 0.1;
+		break;
+	case 4:				// Down
+		BaseXPosition += 0.1;
+		break;
+	default:			// Not started
+		break;
+	}
+}
+
+void rotatePenPosition() {
+
+	switch (rotationDirection) {
+	case 1:				// Left
+		if (shiftPressed) {
+			PenYRotation += 0.05;
+		}
+		else {
+			PenXRotation += 0.05;
+		}
+		break;
+	case 2:				// Right
+		if (shiftPressed) {
+			PenYRotation -= 0.05;
+		}
+		else {
+			PenXRotation -= 0.05;
+		}
+		break;
+	case 3:				// Up
+		PenZRotation += 0.05;
+		break;
+	case 4:				// Down
+		PenZRotation -= 0.05;
+		break;
+	default:			// Not started
+		break;
+	}
+
+}
+
 
 int main(void)
 {
@@ -813,20 +936,26 @@ int main(void)
 		}
 
 		switch (keyMode) {
-		case 1:		// Arm1
-			break;
-		case 2:		// Arm2
-			break;
-		case 3:		// Camera
-			rotateCamera();
-		case 4:		// Base
-			break;
-		case 5:		// Pen
-			break;
-		case 6:		// Top
-			break;
-		default:
-			break;
+			case 0:
+				break;
+			case 1:		// Arm1
+				rotateArm1Position();
+				break;
+			case 2:		// Arm2
+				rotateArm2Position();
+				break;
+			case 3:		// Camera
+				rotateCamera();
+				break;
+			case 4:		// Pen
+				rotatePenPosition();
+				break;
+			case 5:		// Base
+				translateBasePosition();
+				break;
+			case 6:		// Top
+				rotateTopPosition();
+				break;
 		}
 
 		// DRAWING POINTS
