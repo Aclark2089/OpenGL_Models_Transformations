@@ -109,6 +109,7 @@ GLuint ProjMatrixID;
 GLuint PickingMatrixID;
 GLuint pickingColorID;
 GLuint LightID;
+GLuint LightID2;
 
 GLint gX = 0.0;
 GLint gZ = 0.0;
@@ -321,10 +322,12 @@ void renderScene(void)
 
 	glUseProgram(programID);
 	{
-		glm::vec3 lightPos = glm::vec3(4, 4, 4);
+		glm::vec3 lightPos = glm::vec3(5, 5, 5);
+		glm::vec3 lightPos2 = glm::vec3(-5, 5, -5);
 		glm::mat4x4 ModelMatrix = glm::mat4(1.0);
 
 		glUniform3f(LightID, lightPos.x, lightPos.y, lightPos.z);
+		glUniform3f(LightID2, lightPos2.x, lightPos2.y, lightPos2.z);
 
 		glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &gViewMatrix[0][0]);
 		glUniformMatrix4fv(ProjMatrixID, 1, GL_FALSE, &gProjectionMatrix[0][0]);
@@ -680,6 +683,7 @@ void initOpenGL(void)
 	pickingColorID = glGetUniformLocation(pickingProgramID, "PickingColor");
 	// Get a handle for our "LightPosition" uniform
 	LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
+	LightID2 = glGetUniformLocation(programID, "LightPosition_worldspace2");
 
 	createObjects();
 }
