@@ -164,6 +164,8 @@ GLfloat phi = 0.0;
 bool isCameraSelected = false; // Flag for enabling camera movement
 int cameraDirection; // Direction of rotation for camera (L/R, U/D)
 float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
+
+int keyMode;
 								 
 // Object Matricies
 glm::mat4x4 BaseModelMatrix = glm::mat4(1.0);
@@ -315,6 +317,7 @@ void createObjects(void)
 
 }
 
+// Setup initial positions of the haptic device
 void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
 
 	// Base
@@ -647,9 +650,29 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 	if (action == GLFW_PRESS) {
 		switch (key)
 		{
+		case GLFW_KEY_1:
+			keyMode != 1 ? keyMode = 1 : keyMode = 0;
+			printf("Arm1 is %s", keyMode == 1 ? "selected\n" : "deselected\n");
+			break;
+		case GLFW_KEY_2:
+			keyMode != 2 ? keyMode = 2 : keyMode = 0;
+			printf("Arm2 is %s", keyMode == 2 ? "selected\n" : "deselected\n");
+			break;
 		case GLFW_KEY_C:
-			isCameraSelected = !isCameraSelected;
-			printf("Camera is %s", isCameraSelected ? "selected\n" : "not selected\n");
+			keyMode != 3 ? keyMode = 3 : keyMode = 0;
+			printf("Camera is %s", keyMode == 3 ? "selected\n" : "deselected\n");
+			break;
+		case GLFW_KEY_P:
+			keyMode != 4 ? keyMode = 4 : keyMode = 0;
+			printf("Pen is %s", keyMode == 4 ? "selected\n" : "deselected\n");
+			break;
+		case GLFW_KEY_B:
+			keyMode != 5 ? keyMode = 5 : keyMode = 0;
+			printf("Base is %s", keyMode == 5 ? "selected\n" : "deselected\n");
+			break;
+		case GLFW_KEY_T:
+			keyMode != 6 ? keyMode = 6 : keyMode = 0;
+			printf("Top is %s", keyMode == 6 ? "selected\n" : "deselected\n");
 			break;
 		case GLFW_KEY_LEFT:
 			printf("Left arrow key pressed\n");
@@ -666,6 +689,12 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 		case GLFW_KEY_DOWN:
 			printf("Down arrow key pressed\n");
 			cameraDirection = 4;
+			break;
+		case GLFW_KEY_LEFT_SHIFT:
+			printf("Left shift key pressed\n");
+			break;
+		case GLFW_KEY_RIGHT_SHIFT:
+			printf("Right shift key pressed\n");
 			break;
 		default:
 			break;
@@ -768,8 +797,21 @@ int main(void)
 				phi -= 360;
 		}
 
-		if (isCameraSelected) {
+		switch (keyMode) {
+		case 1:		// Arm1
+			break;
+		case 2:		// Arm2
+			break;
+		case 3:		// Camera
 			rotateCamera();
+		case 4:		// Base
+			break;
+		case 5:		// Pen
+			break;
+		case 6:		// Top
+			break;
+		default:
+			break;
 		}
 
 		// DRAWING POINTS
