@@ -50,57 +50,6 @@ typedef struct Vertex {
 	}
 };
 
-
-//class GObject {
-//
-//	glm::mat4x4 ModelMatrix;
-//	int objIndex;
-//
-//public:
-//	GObject() {};
-//	~GObject();
-//
-//	void initObject(int oi) {
-//		objIndex = oi;
-//		ModelMatrix = glm::mat4(1.0);
-//	}
-//
-//	glm::mat4x4& getModelMatrix() {
-//		return ModelMatrix;
-//	}
-//
-//	void translateObject(glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
-//
-//		// Translate Object Model Matrix by TranslationDirection from Basis ModelMatrixToTranslateOff
-//		ModelMatrix = glm::translate(
-//			ModelMatrixToTranslateOff,
-//			TranslationDirection
-//			);
-//	}
-//
-//	void rotateObject(glm::mat4x4 ModelMatrixToRotateOff, float rotation, glm::vec3 RotationDirection) {
-//
-//		// Rotate Object Model Matrix by rotation in RotationDirection from Basis ModelMatrixToRotateOff
-//		ModelMatrix = glm::rotate(
-//			ModelMatrixToRotateOff,
-//			rotation,
-//			RotationDirection
-//			);
-//	
-//	}
-//
-//	void scaleObject(glm::mat4x4 ModelMatrixToScaleOff, glm::vec3 ScaleAmount) {
-//		
-//		// Scale Object Model Matrix by ScaleAmount from Basis ModelMatrixToScaleOff
-//		ModelMatrix = glm::scale(
-//			ModelMatrixToScaleOff,
-//			ScaleAmount
-//			);
-//
-//	}
-//
-//};
-
 // function prototypes
 int initWindow(void);
 void initOpenGL(void);
@@ -114,6 +63,7 @@ static void keyCallback(GLFWwindow*, int, int, int, int);
 static void mouseCallback(GLFWwindow*, int, int, int);
 glm::vec3 setLookat(void);
 void rotateCamera(void);
+void deselectObjectIndicies(void);
 
 // SRT Functions
 void translateObject(glm::mat4x4*, glm::mat4x4, glm::vec3);
@@ -136,14 +86,17 @@ std::string gMessage;
 GLuint programID;
 GLuint pickingProgramID;
 
-const GLuint NumObjects = 9;	// ATTN: THIS NEEDS TO CHANGE AS YOU ADD NEW OBJECTS
-GLuint VertexArrayId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-GLuint VertexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-GLuint IndexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+const GLuint NumObjects = 16;
+GLuint VertexArrayId[NumObjects] = { 0, 
+									 1, 2, 3, 4, 5, 6, 7, 8, // Base Objects 
+									 9, 10, 11, 12, 13, 14, 15 // Selected Objects
+								   };
+GLuint VertexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+GLuint IndexBufferId[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
-size_t NumIndices[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-size_t VertexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
-size_t IndexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8 };
+size_t NumIndices[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+size_t VertexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+size_t IndexBufferSize[NumObjects] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
 
 GLuint MatrixID;
 GLuint ModelMatrixID;
@@ -160,12 +113,16 @@ GLint gZ = 0.0;
 bool animation = false;
 GLfloat phi = 0.0;
 
+// Key Action Identifier To Catch Keypresses 
+int keyMode;
+
 // Camera Variables
-bool isCameraSelected = false; // Flag for enabling camera movement
-int cameraDirection; // Direction of rotation for camera (L/R, U/D)
+int rotationDirection; // Direction of rotation (L/R, U/D)
 float thetaX, thetaY = 1.0f; // Rotation positions for left/right & up/down movement of camera
 
-int keyMode;
+// Object Variables
+
+
 								 
 // Object Matricies
 glm::mat4x4 BaseModelMatrix = glm::mat4(1.0);
@@ -175,6 +132,16 @@ glm::mat4x4 TopModelMatrix = glm::mat4(1.0);
 glm::mat4x4 ButtonModelMatrix = glm::mat4(1.0);
 glm::mat4x4 JointModelMatrix = glm::mat4(1.0);
 glm::mat4x4 PenModelMatrix = glm::mat4(1.0);
+
+// Object Indicies
+unsigned int BaseIndex = 2;
+unsigned int Arm1Index = 3;
+unsigned int Arm2Index = 4;
+unsigned int ButtonIndex = 5;
+unsigned int JointIndex = 6;
+unsigned int PenIndex = 7;
+unsigned int TopIndex = 8;
+
 
 void translateObject(glm::mat4x4 *ModelMatrixToSet, glm::mat4x4 ModelMatrixToTranslateOff, glm::vec3 TranslationDirection) {
 
@@ -287,33 +254,37 @@ void createObjects(void)
 
 	// Load model pieces into space
 
-	// Base
+	// Base Objects
 	loadObject("models/base.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 2);
 	createVAOs(Verts, Idcs, 2);
-	
-	// Arm 1
 	loadObject("models/arm1.obj", glm::vec4(0.0, 0.0, 1.0, 1.0), Verts, Idcs, 3);
 	createVAOs(Verts, Idcs, 3);
-
-	// Arm 2
 	loadObject("models/arm2.obj", glm::vec4(0.0, 1.0, 1.0, 1.0), Verts, Idcs, 4);
 	createVAOs(Verts, Idcs, 4);
-
-	// Button
 	loadObject("models/button.obj", glm::vec4(1.0, 0.0, 0.0, 1.0), Verts, Idcs, 5);
 	createVAOs(Verts, Idcs, 5);
-
-	// Joint
 	loadObject("models/joint.obj", glm::vec4(1.0, 0.0, 1.0, 1.0), Verts, Idcs, 6);
 	createVAOs(Verts, Idcs, 6);
-
-	// Pen
 	loadObject("models/pen.obj", glm::vec4(1.0, 1.0, 0.0, 1.0), Verts, Idcs, 7);
 	createVAOs(Verts, Idcs, 7);
-
-	// Top
 	loadObject("models/top.obj", glm::vec4(0.0, 1.0, 0.0, 1.0), Verts, Idcs, 8);
 	createVAOs(Verts, Idcs, 8);
+
+	// Selected Objects
+	loadObject("models/base.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 9);
+	createVAOs(Verts, Idcs, 9);
+	loadObject("models/arm1.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 10);
+	createVAOs(Verts, Idcs, 10);
+	loadObject("models/arm2.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 11);
+	createVAOs(Verts, Idcs, 11);
+	loadObject("models/button.obj", glm::vec4(1.0, 1.0, 0.0, 1.0), Verts, Idcs, 12);
+	createVAOs(Verts, Idcs, 12);
+	loadObject("models/joint.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 13);
+	createVAOs(Verts, Idcs, 13);
+	loadObject("models/pen.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 14);
+	createVAOs(Verts, Idcs, 14);
+	loadObject("models/top.obj", glm::vec4(1.0, 1.0, 1.0, 1.0), Verts, Idcs, 15);
+	createVAOs(Verts, Idcs, 15);
 
 }
 
@@ -322,37 +293,68 @@ void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
 
 	// Base
 	translateObject(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[BaseIndex]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
 
 	// Top
 	translateObject(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	translateObject(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[TopIndex]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm1
 	translateObject(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	rotateObject(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObject(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[Arm1Index]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
 
 	// Joint
 	translateObject(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	scaleObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
 	translateObject(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[JointIndex]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm2
 	translateObject(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	scaleObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
 	rotateObject(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5), glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObject(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[Arm2Index]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
 
 	// Pen
 	translateObject(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	rotateObject(&PenModelMatrix, PenModelMatrix, float( 2 * PI / 3), glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObject(&PenModelMatrix, PenModelMatrix, glm::vec3(0.55f, -0.1f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[PenIndex]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
 	
 
 	// Button
 	translateObject(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	translateObject(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
+	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
+	glBindVertexArray(VertexArrayId[ButtonIndex]);
+	glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
 
+}
+
+void deselectObjectIndicies() {
+	BaseIndex = 2;
+	Arm1Index = 3;
+	Arm2Index = 4;
+	ButtonIndex = 5;
+	JointIndex = 6;
+	PenIndex = 7;
+	TopIndex = 8;
 }
 
 void renderScene(void)
@@ -390,41 +392,7 @@ void renderScene(void)
 
 		// Translate Objects to Correct Positions
 		setObjectBasisPositions(ModelMatrix);
-		
-		// Draw Base
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[2]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[2], GL_UNSIGNED_SHORT, 0);
 
-		// Draw Top
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[8]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[8], GL_UNSIGNED_SHORT, 0);
-
-		// Draw Arm 1
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[3]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[3], GL_UNSIGNED_SHORT, 0);
-
-		//Draw Joint
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[6]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[6], GL_UNSIGNED_SHORT, 0);
-
-		// Draw Arm 2
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[4]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[4], GL_UNSIGNED_SHORT, 0);
-
-		// Draw Pen
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[7]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[7], GL_UNSIGNED_SHORT, 0);
-
-		// Draw Button
-		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
-		glBindVertexArray(VertexArrayId[5]);
-		glDrawElements(GL_TRIANGLES, VertexBufferSize[5], GL_UNSIGNED_SHORT, 0);
 
 		glBindVertexArray(0);
 
@@ -651,44 +619,91 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 		switch (key)
 		{
 		case GLFW_KEY_1:
-			keyMode != 1 ? keyMode = 1 : keyMode = 0;
-			printf("Arm1 is %s", keyMode == 1 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 1) {
+				keyMode = 1;
+				Arm1Index = 10;
+				printf("Arm1 is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Arm1 is deselected\n");
+			}
 			break;
 		case GLFW_KEY_2:
-			keyMode != 2 ? keyMode = 2 : keyMode = 0;
-			printf("Arm2 is %s", keyMode == 2 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 2) {
+				keyMode = 2;
+				Arm2Index = 11;
+				printf("Arm2 is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Arm2 is deselected\n");
+			}
 			break;
 		case GLFW_KEY_C:
-			keyMode != 3 ? keyMode = 3 : keyMode = 0;
-			printf("Camera is %s", keyMode == 3 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 3) {
+				keyMode = 3;
+				printf("Camera is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Camera is deselected\n");
+			}
 			break;
 		case GLFW_KEY_P:
-			keyMode != 4 ? keyMode = 4 : keyMode = 0;
-			printf("Pen is %s", keyMode == 4 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 4) {
+				keyMode = 4;
+				PenIndex = 14;
+				printf("Pen is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Pen is deselected\n");
+			}
 			break;
 		case GLFW_KEY_B:
-			keyMode != 5 ? keyMode = 5 : keyMode = 0;
-			printf("Base is %s", keyMode == 5 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 5) {
+				keyMode = 5;
+				BaseIndex = 9;
+				printf("Base is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Base is deselected\n");
+			}
 			break;
 		case GLFW_KEY_T:
-			keyMode != 6 ? keyMode = 6 : keyMode = 0;
-			printf("Top is %s", keyMode == 6 ? "selected\n" : "deselected\n");
+			deselectObjectIndicies();
+			if (keyMode != 6) {
+				keyMode = 6;
+				TopIndex = 15;
+				printf("Top is selected\n");
+			}
+			else {
+				keyMode = 0;
+				printf("Top is deselected\n");
+			}
 			break;
 		case GLFW_KEY_LEFT:
 			printf("Left arrow key pressed\n");
-			cameraDirection = 1;
+			rotationDirection = 1;
 			break;
 		case GLFW_KEY_RIGHT:
 			printf("Right arrow key pressed\n");
-			cameraDirection = 2;
+			rotationDirection = 2;
 			break;
 		case GLFW_KEY_UP:
 			printf("Up arrow key pressed\n");
-			cameraDirection = 3;
+			rotationDirection = 3;
 			break;
 		case GLFW_KEY_DOWN:
 			printf("Down arrow key pressed\n");
-			cameraDirection = 4;
+			rotationDirection = 4;
 			break;
 		case GLFW_KEY_LEFT_SHIFT:
 			printf("Left shift key pressed\n");
@@ -704,8 +719,8 @@ static void keyCallback(GLFWwindow* window, int key, int scancode, int action, i
 	// Release Actions
 	if (action == GLFW_RELEASE) {
 
-		// Turn off camera rotation
-		cameraDirection = 0;
+		// Turn off rotation
+		rotationDirection = 0;
 
 	}
 }
@@ -747,7 +762,7 @@ glm::vec3 setLookat() {
 
 void rotateCamera() {
 
-	switch (cameraDirection) {
+	switch (rotationDirection) {
 	case 1:				// Left
 		thetaX += 0.05;
 		break;
