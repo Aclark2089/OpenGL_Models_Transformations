@@ -304,46 +304,47 @@ void createObjects(void)
 void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
 
 	// Base
+	glBindVertexArray(VertexArrayId[BaseIndex]);
 	translateObjectMatrix(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	translateObjectMatrix(&BaseModelMatrix, BaseModelMatrix, glm::vec3(0.0f + BaseXPosition, 0.5f, 0.0f + BaseZPosition));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &BaseModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[BaseIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
 
 	// Top
+	glBindVertexArray(VertexArrayId[TopIndex]);
 	translateObjectMatrix(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	rotateObjectMatrix(&TopModelMatrix, TopModelMatrix, TopYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
 	translateObjectMatrix(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &TopModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[TopIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm1
+	glBindVertexArray(VertexArrayId[Arm1Index]);
 	translateObjectMatrix(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	rotateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4) + Arm1ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm1ModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[Arm1Index]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
 
 	// Joint
+	glBindVertexArray(VertexArrayId[JointIndex]);
 	translateObjectMatrix(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	scaleObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
 	translateObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &JointModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[JointIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
 	
 	// Arm2
+	glBindVertexArray(VertexArrayId[Arm2Index]);
 	translateObjectMatrix(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	scaleObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
 	rotateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5) + Arm2ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &Arm2ModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[Arm2Index]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
 
 	// Pen
+	glBindVertexArray(VertexArrayId[PenIndex]);
 	translateObjectMatrix(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, float(2 * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.6f, 0.0f, 0.0f));
@@ -351,18 +352,15 @@ void setObjectBasisPositions(glm::mat4x4 ModelMatrix) {
 	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
 	translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.2f, 0.0f));
 	rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
-	
-	
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &PenModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[PenIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
 	
 
 	// Button
+	glBindVertexArray(VertexArrayId[ButtonIndex]);
 	translateObjectMatrix(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
 	translateObjectMatrix(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
 	glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ButtonModelMatrix[0][0]);
-	glBindVertexArray(VertexArrayId[ButtonIndex]);
 	glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
 
 }
@@ -379,8 +377,6 @@ void deselectObjectIndicies() {
 
 void renderScene(void)
 {
-	//ATTN: DRAW YOUR SCENE HERE. MODIFY/ADAPT WHERE NECESSARY!
-
 	// Update camera view based on arrow key movement
 	gViewMatrix = glm::lookAt(setLookat(), glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));
 
@@ -437,16 +433,81 @@ void pickObject(void)
 		// Send our transformation to the currently bound shader, in the "MVP" uniform
 		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
 		
-		// ATTN: DRAW YOUR PICKING SCENE HERE. REMEMBER TO SEND IN A DIFFERENT PICKING COLOR FOR EACH OBJECT BEFOREHAND
-		//// draw Base
-		//glBindVertexArray(X);	
-		//	glUniform1f(pickingColorID, Y / 255.0f); // here we pass in the picking marker
-		//	glDrawElements(Z);
-		//// draw Top
-		//glBindVertexArray(XX);	
-		//	glUniform1f(pickingColorID, YY / 255.0f); // here we pass in the picking marker
-		//	glDrawElements(ZZ);
-		//glBindVertexArray(0);
+		// Base
+		glBindVertexArray(VertexArrayId[BaseIndex]);
+		translateObjectMatrix(&BaseModelMatrix, ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		translateObjectMatrix(&BaseModelMatrix, BaseModelMatrix, glm::vec3(0.0f + BaseXPosition, 0.5f, 0.0f + BaseZPosition));
+		MVP = gProjectionMatrix * gViewMatrix * BaseModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, BaseIndex / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[BaseIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Top
+		glBindVertexArray(VertexArrayId[TopIndex]);
+		translateObjectMatrix(&TopModelMatrix, BaseModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&TopModelMatrix, TopModelMatrix, TopYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		translateObjectMatrix(&TopModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * TopModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, TopIndex / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[TopIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Arm1
+		glBindVertexArray(VertexArrayId[Arm1Index]);
+		translateObjectMatrix(&Arm1ModelMatrix, TopModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, float((-1) * PI / 4) + Arm1ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&Arm1ModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.75f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * Arm1ModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, Arm1Index / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm1Index], GL_UNSIGNED_SHORT, 0);
+
+		// Joint
+		glBindVertexArray(VertexArrayId[JointIndex]);
+		translateObjectMatrix(&JointModelMatrix, Arm1ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		scaleObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.65f));
+		translateObjectMatrix(&JointModelMatrix, JointModelMatrix, glm::vec3(0.0f, 2.05f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * JointModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, JointIndex / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[JointIndex], GL_UNSIGNED_SHORT, 0);
+
+		// Arm2
+		glBindVertexArray(VertexArrayId[Arm2Index]);
+		translateObjectMatrix(&Arm2ModelMatrix, JointModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		scaleObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(2.0f));
+		rotateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, float((-1) * PI / 2.5) + Arm2ZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&Arm2ModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.5f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * Arm2ModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, Arm2Index / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[Arm2Index], GL_UNSIGNED_SHORT, 0);
+
+		// Pen
+		glBindVertexArray(VertexArrayId[PenIndex]);
+		translateObjectMatrix(&PenModelMatrix, Arm2ModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, float(2 * PI / 4), glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.6f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenXRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenZRotation, glm::vec3(0.0f, 0.0f, 1.0f));
+		translateObjectMatrix(&PenModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.2f, 0.0f));
+		rotateObjectMatrix(&PenModelMatrix, PenModelMatrix, PenYRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * PenModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, PenIndex / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[PenIndex], GL_UNSIGNED_SHORT, 0);
+
+
+		// Button
+		glBindVertexArray(VertexArrayId[ButtonIndex]);
+		translateObjectMatrix(&ButtonModelMatrix, PenModelMatrix, glm::vec3(0.0f, 0.0f, 0.0f));
+		translateObjectMatrix(&ButtonModelMatrix, ButtonModelMatrix, glm::vec3(0.05f, 0.0f, 0.0f));
+		MVP = gProjectionMatrix * gViewMatrix * ButtonModelMatrix;
+		glUniformMatrix4fv(PickingMatrixID, 1, GL_FALSE, &MVP[0][0]);
+		glUniform1f(pickingColorID, ButtonIndex / 255.0f);
+		glDrawElements(GL_TRIANGLES, VertexBufferSize[ButtonIndex], GL_UNSIGNED_SHORT, 0);
+
+		glBindVertexArray(0);
 	}
 	glUseProgram(0);
 	// Wait until all the pending drawing commands are really done.
@@ -475,12 +536,36 @@ void pickObject(void)
 	}
 	else {
 		std::ostringstream oss;
-		oss << "point " << gPickedIndex;
+		switch (gPickedIndex) {
+			case 2:
+				oss << "Base";
+				break;
+			case 3:
+				oss << "Arm1";
+				break;
+			case 4:
+				oss << "Arm2";
+				break;
+			case 5:
+				oss << "Button";
+				break;
+			case 6:
+				oss << "Joint";
+				break;
+			case 7:
+				oss << "Pen";
+				break;
+			case 8:
+				oss << "Top";
+				break;
+			default:
+				oss << "point " << gPickedIndex;
+		}
 		gMessage = oss.str();
 	}
 
 	// Uncomment these lines to see the picking shader in effect
-	//glfwSwapBuffers(window);
+	glfwSwapBuffers(window);
 	//continue; // skips the normal rendering
 }
 
