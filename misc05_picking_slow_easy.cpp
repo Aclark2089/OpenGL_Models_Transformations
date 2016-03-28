@@ -812,10 +812,10 @@ void rotateArm1Position() {
 
 	switch (rotationDirection) {
 	case 3:				// Up
-		Arm1ZRotation += 0.05;
+		Arm1ZRotation < (2 * PI / 3) ? Arm1ZRotation += 0.05 : false;
 		break;
 	case 4:				// Down
-		Arm1ZRotation -= 0.05;
+		Arm1ZRotation > ( (-1) * PI / 4) ? Arm1ZRotation -= 0.05 : false;
 		break;
 	default:			// Not started
 		break;
@@ -826,10 +826,10 @@ void rotateArm2Position() {
 
 	switch (rotationDirection) {
 	case 3:				// Up
-		Arm2ZRotation += 0.05;
+		Arm2ZRotation < ( PI ) ? Arm2ZRotation += 0.05 : false;
 		break;
 	case 4:				// Down
-		Arm2ZRotation -= 0.05;
+		Arm2ZRotation > ( (-1) * PI / 3 ) ? Arm2ZRotation -= 0.05 : false;
 		break;
 	default:			// Not started
 		break;
@@ -854,16 +854,16 @@ void translateBasePosition() {
 
 	switch (rotationDirection) {
 	case 1:				// Left
-		BaseZPosition += 0.1;
+		BaseZPosition < (5) ? BaseZPosition += 0.1 : false;
 		break;
 	case 2:				// Right
-		BaseZPosition -= 0.1;
+		BaseZPosition > ((-1) * 5) ? BaseZPosition -= 0.1 : false;
 		break;
 	case 3:				// Up
-		BaseXPosition -= 0.1;
+		BaseXPosition > ((-1) * 5) ? BaseXPosition -= 0.1 : false;
 		break;
 	case 4:				// Down
-		BaseXPosition += 0.1;
+		BaseXPosition < (5) ? BaseXPosition += 0.1 : false;
 		break;
 	default:			// Not started
 		break;
@@ -875,25 +875,25 @@ void rotatePenPosition() {
 	switch (rotationDirection) {
 	case 1:				// Left
 		if (shiftPressed) {
-			PenYRotation += 0.05;
+			PenYRotation < ( PI / 2) ? PenYRotation += 0.05 : false;
 		}
 		else {
-			PenXRotation += 0.05;
+			PenXRotation < (PI / 3) ? PenXRotation += 0.05 : false;
 		}
 		break;
 	case 2:				// Right
 		if (shiftPressed) {
-			PenYRotation -= 0.05;
+			PenYRotation > ((-1) * PI / 2) ? PenYRotation -= 0.05 : false;
 		}
 		else {
-			PenXRotation -= 0.05;
+			PenXRotation > ((-1) * PI / 3) ? PenXRotation -= 0.05 : false;
 		}
 		break;
 	case 3:				// Up
-		PenZRotation += 0.05;
+		PenZRotation < ( PI / 4) ? PenZRotation += 0.05 : false;
 		break;
 	case 4:				// Down
-		PenZRotation -= 0.05;
+		PenZRotation > ((-1) * PI / 4) ? PenZRotation -= 0.05 : false;
 		break;
 	default:			// Not started
 		break;
